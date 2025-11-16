@@ -42,27 +42,6 @@
      - `app.py` (line 50)
      - `qr.py`, `signature.py`, `stamp.py` (if using individually)
 
-## Project Structure
-
-```
-armeta/
-├── app.py                      # Streamlit web application
-├── process_all_models.py       # Main batch processing script
-├── qr.py                       # QR code detection script
-├── signature.py                # Signature detection script
-├── stamp.py                    # Stamp detection script
-├── main.py                     # (Contains commented code)
-├── best.pt                     # Custom YOLO model for stamp detection
-├── requirements.txt            # Python dependencies
-├── model_outputs.json          # Generated JSON with all annotations
-├── pdfs/                       # Directory containing PDF files
-├── test/                       # Directory for PDFs to process
-├── annotated_pages/            # Generated annotated images
-├── qr1_detected_pages/         # QR detection outputs
-├── sign_detected_pages/         # Signature detection outputs
-└── stamp_detected_pages/       # Stamp detection outputs
-```
-
 ## Usage
 
 ### Method 1: Batch Processing (Recommended)
@@ -119,23 +98,6 @@ python stamp.py
 ```
 (Update `pdf_path` in the script)
 
-## Configuration
-
-### Processing Settings
-
-In `process_all_models.py`, you can adjust:
-
-- `PDFS_DIR`: Directory containing PDFs to process (default: `"test"`)
-- `OUTPUT_JSON`: Output JSON filename (default: `"model_outputs.json"`)
-- `OUTPUT_IMAGES_DIR`: Directory for annotated images (default: `"annotated_pages"`)
-- `POPPLER_PATH`: Path to Poppler bin directory
-
-### Model Parameters
-
-- **QR Detection**: `min_confidence=0.3` (in `process_all_models.py`)
-- **Signature Detection**: `confidence > 0.1` threshold
-- **Stamp Detection**: `conf=0.4` threshold
-
 ## Output Format
 
 The system generates a JSON file with the following structure:
@@ -167,16 +129,16 @@ The system generates a JSON file with the following structure:
 }
 ```
 
-### Visual Output
+## 🖼️ Detection Results
+<div style="text-align:center;">
+  <figure style="display:inline-block; margin: 10px;">
+  <img src="page_2.png" width="250"/>
+    <figcaption>Predicted for test/лицензия-.pdf</figcaption>
+  </figure>
 
-The system generates annotated images saved in the `annotated_pages/` directory. Each annotated image shows:
-- **Bounding boxes** drawn around detected elements
-- **Color-coded labels** (QR, SIGNATURE, STAMP) above each detection
-- **Original page content** preserved with annotations overlaid
-
-Example annotated images are available in:
-- `annotated_pages/дозиметрия-2/page_4.png` - Contains signature and stamp
-- `annotated_pages/лицензия-/page_1.png` - Contains multiple QR codes
-- `annotated_pages/АПЗ-41-чб/` - Multiple pages with various annotations
-
+  <figure style="display:inline-block; margin: 10px;">
+  <img src="page_4.png" width="250"/>
+    <figcaption>Predicted for test/дозиметрия-2.pdf</figcaption>
+  </figure>
+</div>
 
