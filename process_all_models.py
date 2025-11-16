@@ -13,7 +13,7 @@ from pathlib import Path
 
 # Configuration
 PDFS_DIR = "test"
-OUTPUT_JSON = "model_outputs.json"
+OUTPUT_JSON = "outputs.json"
 OUTPUT_IMAGES_DIR = "annotated_pages"
 POPPLER_PATH = r"D:\Downloads\Release-25.11.0-0\poppler-25.11.0\Library\bin"
 
@@ -26,7 +26,7 @@ COLORS = {
 
 # Initialize models
 print("Loading models...")
-qr_model = QReader(model_size='m', min_confidence=0.3)
+qr_model = QReader(model_size='s', min_confidence=0.2)
 
 # Signature model
 signature_model_path = hf_hub_download(
@@ -116,7 +116,7 @@ def process_stamp_detections(stamp_model, image):
     """Detect stamps in image and return annotations with bbox coordinates"""
     image_bgr = cv2.cvtColor(image.copy(), cv2.COLOR_RGB2BGR)
     
-    results = stamp_model.predict(image_bgr, conf=0.4, imgsz=(1400, 876))
+    results = stamp_model.predict(image_bgr, conf=0.4, imgsz=(876, 1024))
     annotations = []
     bboxes = []  # For drawing
     
@@ -250,6 +250,7 @@ def process_pdf(pdf_path, output_images_dir=None):
             else:
                 # If no annotations, just convert RGB to BGR and save original
                 annotated_image = cv2.cvtColor(img.copy(), cv2.COLOR_RGB2BGR)
+                # pass
             
             output_path = os.path.join(pdf_output_dir, f"page_{page_num}.png")
             cv2.imwrite(output_path, annotated_image)
