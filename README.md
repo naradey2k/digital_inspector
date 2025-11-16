@@ -1,15 +1,11 @@
 # Document Annotation System
 
-A machine learning-powered document analysis system that automatically detects and annotates QR codes, signatures, and stamps in PDF documents. The system uses multiple deep learning models to identify these elements and provides a web-based interface for visualization and analysis.
-
 ## Features
 
 - **QR Code Detection**: Detects QR codes in PDF documents using QReader
 - **Signature Detection**: Identifies signatures using YOLOv8 model with OCR text extraction
 - **Stamp Detection**: Detects stamps using a custom-trained YOLO model
 - **Web Visualization**: Interactive Streamlit dashboard for viewing and analyzing results
-- **Batch Processing**: Process multiple PDFs at once
-- **Annotation Export**: Export results as JSON and CSV files
 
 ## Technologies Used
 
@@ -18,20 +14,6 @@ A machine learning-powered document analysis system that automatically detects a
 - **Ultralytics YOLO**: Object detection for signatures and stamps
 - **EasyOCR**: Optical Character Recognition for text extraction from signatures
 - **Supervision**: Detection utilities and visualization
-
-### Web Framework & Visualization
-- **Streamlit**: Web application framework for the interactive dashboard
-- **Plotly**: Interactive charts and graphs
-- **Pandas**: Data manipulation and analysis
-
-### Image Processing
-- **OpenCV**: Image processing and annotation drawing
-- **Pillow (PIL)**: Image manipulation
-- **pdf2image**: PDF to image conversion (requires Poppler)
-
-### Other Libraries
-- **NumPy**: Numerical operations
-- **HuggingFace Hub**: Model downloading
 
 ## Prerequisites
 
@@ -185,119 +167,6 @@ The system generates a JSON file with the following structure:
 }
 ```
 
-## Annotation Examples
-
-### QR Code Detection Example
-
-```json
-{
-  "annotation_1": {
-    "category": "qr",
-    "bbox": {
-      "x": 3499.875244140625,
-      "y": 5752.39892578125,
-      "width": 830.190673828125,
-      "height": 830.5
-    },
-    "area": 689473.3546142578
-  }
-}
-```
-
-**Characteristics:**
-- Detected at coordinates (x, y) with width and height
-- Area calculated in pixels²
-- Typically square-shaped with similar width and height
-
-### Signature Detection Example
-
-```json
-{
-  "annotation_2": {
-    "category": "signature",
-    "bbox": {
-      "x": 1998.491455078125,
-      "y": 4108.68896484375,
-      "width": 576.539306640625,
-      "height": 235.26806640625
-    },
-    "area": 135641.2878805399,
-    "extracted_text": "Олегов @онишEка6 (Подпись) ЖАЙоKЕ₽Ujin 1 &orPix АСхАxх"
-  }
-}
-```
-
-**Characteristics:**
-- Includes bounding box coordinates and dimensions
-- **extracted_text**: OCR-extracted text from the signature region (expanded area)
-- Typically wider than tall (rectangular shape)
-- Text extraction includes surrounding text in the expanded region below the signature
-
-### Stamp Detection Example
-
-```json
-{
-  "annotation_3": {
-    "category": "stamp",
-    "bbox": {
-      "x": 1151.23095703125,
-      "y": 2391.40576171875,
-      "width": 1006.68603515625,
-      "height": 946.0947265625
-    },
-    "area": 952420.3491654396
-  }
-}
-```
-
-**Characteristics:**
-- Detected with bounding box coordinates
-- Typically larger area than signatures
-- Often square or circular in shape
-- No text extraction (stamps are visual elements)
-
-### Complete Page Example
-
-A page with multiple annotation types:
-
-```json
-{
-  "page_4": {
-    "annotations": [
-      {
-        "annotation_3": {
-          "category": "signature",
-          "bbox": {
-            "x": 1998.491455078125,
-            "y": 4108.68896484375,
-            "width": 576.539306640625,
-            "height": 235.26806640625
-          },
-          "area": 135641.2878805399,
-          "extracted_text": "Олегов @онишEка6 (Подпись) ЖАЙоKЕ₽Ujin 1 &orPix АСхАxх"
-        }
-      },
-      {
-        "annotation_4": {
-          "category": "stamp",
-          "bbox": {
-            "x": 1085.9072265625,
-            "y": 4079.26318359375,
-            "width": 985.36962890625,
-            "height": 934.5673828125
-          },
-          "area": 920894.3151898384
-        }
-      }
-    ],
-    "page_size": {
-      "width": 4959,
-      "height": 7017
-    }
-  }
-}
-```
-
 ### Visual Output
 
 The system generates annotated images saved in the `annotated_pages/` directory. Each annotated image shows:
@@ -310,40 +179,4 @@ Example annotated images are available in:
 - `annotated_pages/лицензия-/page_1.png` - Contains multiple QR codes
 - `annotated_pages/АПЗ-41-чб/` - Multiple pages with various annotations
 
-## Color Coding
-
-Annotations are color-coded in the output images:
-- **Red**: QR codes
-- **Green**: Signatures
-- **Blue**: Stamps
-
-## Troubleshooting
-
-### Poppler Not Found
-- Ensure Poppler is installed and the path is correct
-- Update `POPPLER_PATH` in all scripts
-
-### Model Download Issues
-- The signature model downloads automatically from HuggingFace
-- Ensure you have internet connection on first run
-- Check `huggingface_hub` is installed
-
-### Memory Issues
-- Process PDFs in smaller batches
-- Reduce DPI in `convert_from_path` (currently 300)
-
-### GPU Support
-- EasyOCR can use GPU if available (set `gpu=True` in `easyocr.Reader`)
-- YOLO models will use GPU automatically if CUDA is available
-
-## License
-
-This project uses various open-source libraries. Please refer to their respective licenses.
-
-## Notes
-
-- Processing time depends on PDF size and number of pages
-- First run may take longer due to model downloads
-- Ensure sufficient disk space for annotated images
-- The system processes PDFs at 300 DPI for optimal detection accuracy
 
