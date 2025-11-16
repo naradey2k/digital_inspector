@@ -7,14 +7,6 @@
 - **Stamp Detection**: Detects stamps using a custom-trained YOLO model
 - **Web Visualization**: Interactive Streamlit dashboard for viewing and analyzing results
 
-## Technologies Used
-
-### Machine Learning & Computer Vision
-- **QReader**: QR code detection and decoding
-- **Ultralytics YOLO**: Object detection for signatures and stamps
-- **EasyOCR**: Optical Character Recognition for text extraction from signatures
-- **Supervision**: Detection utilities and visualization
-
 ## Prerequisites
 
 1. **Python 3.8+**
@@ -42,9 +34,9 @@
      - `app.py` (line 50)
      - `qr.py`, `signature.py`, `stamp.py` (if using individually)
 
-## Usage
+## 🧩 Usage
 
-### Method 1: Batch Processing (Recommended)
+### Method 1: Batch Processing
 
 Process all PDFs in the `test/` directory:
 
@@ -55,7 +47,7 @@ python process_all_models.py
 This will:
 - Process all PDFs in the `test/` directory
 - Detect QR codes, signatures, and stamps on each page
-- Generate `model_outputs.json` with all annotations
+- Generate `outputs.json` with all annotations
 - Save annotated images to `annotated_pages/` directory
 
 ### Method 2: Web Application
@@ -68,13 +60,7 @@ streamlit run app.py
 
 The web application provides:
 - **Upload PDF**: Upload and process individual PDFs
-- **Overview**: Dashboard with statistics and charts
-- **PDF Explorer**: Browse processed PDFs and view annotations
-- **All Annotations**: Searchable table of all annotations
-- **Statistics**: Detailed statistical analysis
 - **Image Viewer**: View annotated pages
-
-**Note**: For the web app to display existing data, first run `process_all_models.py` to generate `model_outputs.json`.
 
 ### Method 3: Individual Scripts
 
@@ -133,12 +119,10 @@ The system generates a JSON file with the following structure:
 <div style="text-align:center;">
   <figure style="display:inline-block; margin: 10px;">
   <img src="page_2.png" width="250"/>
-    <figcaption>Predicted for test/лицензия-.pdf</figcaption>
   </figure>
 
   <figure style="display:inline-block; margin: 10px;">
   <img src="page_4.png" width="250"/>
-    <figcaption>Predicted for test/дозиметрия-2.pdf</figcaption>
   </figure>
 </div>
 
