@@ -36,6 +36,11 @@
 
 ## 🧩 Usage
 
+### Training Pipeline
+
+Using `stamp_segmentation_kaggle.ipynb` and `stamp_detection_finetune.ipynb` use could see the training pipeline for fine-tuned YOLOv8 for stamp detection. 
+All the data are in [Stamp Verification Dataset](https://www.kaggle.com/datasets/rtatman/stamp-verification-staver-dataset/data)
+
 ### Method 1: Batch Processing
 
 Process all PDFs in the `test/` directory:
