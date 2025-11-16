@@ -11,24 +11,20 @@ import supervision as sv
 import easyocr
 from pathlib import Path
 
-# Configuration
 PDFS_DIR = "test"
 OUTPUT_JSON = "outputs.json"
 OUTPUT_IMAGES_DIR = "annotated_pages"
-POPPLER_PATH = r"D:\Downloads\Release-25.11.0-0\poppler-25.11.0\Library\bin"
+POPPLER_PATH = r"your_path\poppler-25.11.0\Library\bin"
 
-# Colors for different annotation types (BGR format for OpenCV)
 COLORS = {
-    "qr": (0, 0, 255),        # Red
-    "signature": (0, 255, 0),  # Green
-    "stamp": (255, 0, 0)      # Blue
+    "qr": (0, 0, 255),        
+    "signature": (0, 255, 0),  
+    "stamp": (255, 0, 0)      
 }
 
-# Initialize models
 print("Loading models...")
 qr_model = QReader(model_size='s', min_confidence=0.2)
 
-# Signature model
 signature_model_path = hf_hub_download(
     repo_id="tech4humans/yolov8s-signature-detector",
     filename="yolov8s.pt"
@@ -36,16 +32,14 @@ signature_model_path = hf_hub_download(
 signature_model = YOLO(signature_model_path)
 ocr_reader = easyocr.Reader(['en', 'ru'], gpu=False)
 
-# Stamp model
 stamp_model = YOLO("best.pt")
 
 print("Models loaded successfully!")
 
 def process_qr_detections(qr_model, image):
-    """Detect QR codes in image and return annotations with bbox coordinates"""
     detections = qr_model.detect(image=image)
     annotations = []
-    bboxes = []  # For drawing
+    bboxes = []  
     
     for det in detections:
         x1, y1, x2, y2 = map(float, det['bbox_xyxy'])
@@ -69,7 +63,6 @@ def process_qr_detections(qr_model, image):
     return annotations, bboxes
 
 def process_signature_detections(signature_model, ocr_reader, image):
-    """Detect signatures in image and return annotations with bbox coordinates"""
     image_bgr = cv2.cvtColor(image.copy(), cv2.COLOR_RGB2BGR)
     image_height, image_width = image_bgr.shape[:2]
     
@@ -78,7 +71,7 @@ def process_signature_detections(signature_model, ocr_reader, image):
     detections = detections[detections.confidence > 0.1]
 
     annotations = []
-    bboxes = []  # For drawing
+    bboxes = []  
     
     for bbox in detections.xyxy:
         x1, y1, x2, y2 = bbox.astype(float)
@@ -86,7 +79,6 @@ def process_signature_detections(signature_model, ocr_reader, image):
         height = y2 - y1
         area = width * height
         
-        # Extract text from expanded region
         expanded_x1 = 0
         expanded_x2 = image_width
         expanded_y1 = int(y1)
@@ -113,12 +105,11 @@ def process_signature_detections(signature_model, ocr_reader, image):
     return annotations, bboxes
 
 def process_stamp_detections(stamp_model, image):
-    """Detect stamps in image and return annotations with bbox coordinates"""
     image_bgr = cv2.cvtColor(image.copy(), cv2.COLOR_RGB2BGR)
     
     results = stamp_model.predict(image_bgr, conf=0.4, imgsz=(876, 1024))
     annotations = []
-    bboxes = []  # For drawing
+    bboxes = [] 
     
     for result in results:
         boxes = result.boxes.cpu().numpy()
@@ -144,29 +135,23 @@ def process_stamp_detections(stamp_model, image):
     return annotations, bboxes
 
 def draw_annotations(image, all_bboxes):
-    """Draw all bounding boxes on the image with different colors for each category"""
-    # Convert RGB to BGR for OpenCV
     annotated_image = cv2.cvtColor(image.copy(), cv2.COLOR_RGB2BGR)
     
     for x1, y1, x2, y2, category in all_bboxes:
         color = COLORS.get(category, (255, 255, 255))
-        # Draw rectangle with thickness 20 (similar to original scripts)
         cv2.rectangle(annotated_image, (x1, y1), (x2, y2), color, 20)
         
-        # Add label text
         label = category.upper()
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 1.5
         thickness = 3
         (text_width, text_height), baseline = cv2.getTextSize(label, font, font_scale, thickness)
         
-        # Draw background rectangle for text
         cv2.rectangle(annotated_image, 
                      (x1, y1 - text_height - 10), 
                      (x1 + text_width, y1), 
                      color, -1)
         
-        # Draw text
         cv2.putText(annotated_image, label, 
                    (x1, y1 - 5), 
                    font, font_scale, (255, 255, 255), thickness)
@@ -174,7 +159,6 @@ def draw_annotations(image, all_bboxes):
     return annotated_image
 
 def process_pdf(pdf_path, output_images_dir=None):
-    """Process a single PDF file with all three models and return JSON data, optionally save annotated images"""
     print(f"\nProcessing: {pdf_path}")
     
     try:
@@ -190,7 +174,6 @@ def process_pdf(pdf_path, output_images_dir=None):
     pdf_results = {}
     annotation_counter = 1
     
-    # Create output directory for annotated images if specified
     pdf_name = os.path.basename(pdf_path)
     pdf_folder_name = os.path.splitext(pdf_name)[0]
     if output_images_dir:
@@ -204,15 +187,12 @@ def process_pdf(pdf_path, output_images_dir=None):
         if img.dtype != np.uint8:
             img = img.astype(np.uint8)
         
-        # Get page dimensions
         page_height, page_width = img.shape[:2]
         
-        # Process with all three models
         qr_annotations, qr_bboxes = process_qr_detections(qr_model, img)
         signature_annotations, sig_bboxes = process_signature_detections(signature_model, ocr_reader, img)
         stamp_annotations, stamp_bboxes = process_stamp_detections(stamp_model, img)
         
-        # Combine all annotations and bboxes
         all_annotations = []
         all_bboxes = qr_bboxes + sig_bboxes + stamp_bboxes
         
@@ -234,7 +214,6 @@ def process_pdf(pdf_path, output_images_dir=None):
             })
             annotation_counter += 1
         
-        # Store page results (always include, even if no annotations)
         pdf_results[f"page_{page_num}"] = {
             "annotations": all_annotations,
             "page_size": {
@@ -243,12 +222,10 @@ def process_pdf(pdf_path, output_images_dir=None):
             }
         }
         
-        # Save annotated image if output directory is specified
         if output_images_dir:
             if all_bboxes:
                 annotated_image = draw_annotations(img, all_bboxes)
             else:
-                # If no annotations, just convert RGB to BGR and save original
                 annotated_image = cv2.cvtColor(img.copy(), cv2.COLOR_RGB2BGR)
                 # pass
             
@@ -259,29 +236,23 @@ def process_pdf(pdf_path, output_images_dir=None):
     return pdf_results
 
 def draw_annotations_from_json(json_file_path, output_images_dir):
-    """Read JSON file and draw annotations on PDF pages"""
     print(f"\nDrawing annotations from JSON file: {json_file_path}")
     
-    # Load JSON data
     with open(json_file_path, 'r', encoding='utf-8') as f:
         json_data = json.load(f)
     
-    # Find PDF files in the pdfs directory
     pdf_files = {os.path.basename(p): str(p) for p in Path(PDFS_DIR).glob("*.pdf")}
     
     for pdf_name, pdf_data in json_data.items():
         print(f"\nProcessing PDF: {pdf_name}")
         
-        # Find the actual PDF file path
         pdf_path = pdf_files.get(pdf_name)
         if not pdf_path:
-            # Try to find with different case or exact match
             pdf_path = os.path.join(PDFS_DIR, pdf_name)
             if not os.path.exists(pdf_path):
                 print(f"  Warning: PDF file not found: {pdf_name}")
                 continue
         
-        # Convert PDF to images
         try:
             pages = convert_from_path(
                 pdf_path,
@@ -292,12 +263,10 @@ def draw_annotations_from_json(json_file_path, output_images_dir):
             print(f"  Error converting PDF {pdf_path}: {e}")
             continue
         
-        # Create output directory for this PDF
         pdf_folder_name = os.path.splitext(pdf_name)[0]
         pdf_output_dir = os.path.join(output_images_dir, pdf_folder_name)
         os.makedirs(pdf_output_dir, exist_ok=True)
         
-        # Process each page
         for page_key, page_data in pdf_data.items():
             if not page_key.startswith("page_"):
                 continue
@@ -310,13 +279,11 @@ def draw_annotations_from_json(json_file_path, output_images_dir):
             
             print(f"  Drawing annotations on page {page_num}...")
             
-            # Get the page image
             page = pages[page_num - 1]
             img = np.array(page)
             if img.dtype != np.uint8:
                 img = img.astype(np.uint8)
             
-            # Extract bboxes from annotations
             all_bboxes = []
             annotations = page_data.get("annotations", [])
             
@@ -335,14 +302,11 @@ def draw_annotations_from_json(json_file_path, output_images_dir):
                         
                         all_bboxes.append((x, y, x2, y2, category))
             
-            # Draw annotations on image
             if all_bboxes:
                 annotated_image = draw_annotations(img, all_bboxes)
             else:
-                # If no annotations, just convert RGB to BGR and save original
                 annotated_image = cv2.cvtColor(img.copy(), cv2.COLOR_RGB2BGR)
             
-            # Save annotated image
             output_path = os.path.join(pdf_output_dir, f"page_{page_num}.png")
             cv2.imwrite(output_path, annotated_image)
             print(f"    Saved annotated image: {output_path}")
@@ -350,10 +314,8 @@ def draw_annotations_from_json(json_file_path, output_images_dir):
     print("\nAnnotation drawing complete!")
 
 def main():
-    """Main function to process all PDFs and generate JSON, then draw annotations"""
     start_time = time.time()
     
-    # Get all PDF files from test directory
     pdf_files = list(Path(PDFS_DIR).glob("*.pdf"))
     if not pdf_files:
         print(f"No PDF files found in {PDFS_DIR}")
@@ -361,10 +323,8 @@ def main():
     
     print(f"Found {len(pdf_files)} PDF file(s) to process")
     
-    # Create output directory for annotated images
     os.makedirs(OUTPUT_IMAGES_DIR, exist_ok=True)
     
-    # Process all PDFs and generate JSON with annotated images
     print("="*50)
     print("Processing all PDFs and generating JSON file with annotations...")
     print("="*50)
@@ -378,7 +338,6 @@ def main():
             pdf_name = os.path.basename(pdf_path)
             all_results[pdf_name] = pdf_results
     
-    # Save results to JSON
     json_output_path = os.path.abspath(OUTPUT_JSON)
     with open(OUTPUT_JSON, 'w', encoding='utf-8') as f:
         json.dump(all_results, f, ensure_ascii=False, indent=2)
@@ -398,4 +357,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
